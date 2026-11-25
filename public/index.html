@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>文件共享</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H5v18h14V8l-5-5Zm0 0v5h5M8 13h8m-8 4h5"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10H3Z"/><path d="M3 10h18"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 15v5h16v-5"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v13m-5-5 5 5 5-5M4 16v5h16v-5"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 15V3m-4 4 4-4 4 4M5 11v10h14V11"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+  </svg>
+
+  <main>
+    <header class="page-header">
+      <h1>文件共享</h1>
+      <button class="button" id="share-button" disabled><svg class="icon" aria-hidden="true"><use href="#i-share"/></svg>分享</button>
+    </header>
+    <div id="connection-error" class="error-banner" role="status" hidden>
+      <span id="connection-message">连接已断开</span><button id="retry-button">重试</button>
+    </div>
+    <section aria-label="文件列表" id="files-section">
+      <div class="toolbar">
+        <nav id="breadcrumbs" aria-label="文件夹路径"></nav>
+        <div class="toolbar-actions">
+          <label class="search"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg><input id="search" type="search" placeholder="搜索文件" aria-label="搜索文件" autocomplete="off"></label>
+          <button class="button" id="new-folder-button" hidden>新建文件夹</button>
+          <button class="button primary" id="upload-button" hidden><svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>上传</button>
+        </div>
+      </div>
+      <table class="file-table">
+        <thead><tr><th scope="col">文件名</th><th scope="col" class="size-column">大小</th><th scope="col" class="date-column">修改时间</th><th scope="col" class="action-column"><span class="sr-only">操作</span></th></tr></thead>
+        <tbody id="file-list"></tbody>
+      </table>
+      <p id="empty-state" class="empty-state" role="status">正在加载…</p>
+      <div id="drop-overlay" hidden><svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg><span>松开以上传</span></div>
+    </section>
+    <section id="upload-panel" class="upload-panel" aria-label="上传进度" hidden>
+      <div class="panel-heading"><h2>上传</h2><button id="clear-uploads" class="text-button">清除已结束</button></div>
+      <div id="upload-list"></div>
+    </section>
+  </main>
+  <input type="file" id="file-input" multiple hidden>
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <dialog id="share-dialog" class="modal share-modal" aria-labelledby="share-title">
+    <div class="modal-header"><h2 id="share-title">分享</h2><button class="icon-button close-modal" aria-label="关闭"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div>
+    <div class="qr-frame"><img id="qr-image" alt="访问二维码" width="184" height="184" hidden><span id="qr-placeholder">暂无局域网地址</span></div>
+    <select id="address-select" aria-label="访问地址"></select>
+    <div id="code-row" class="code-row" hidden><span>连接码</span><strong id="access-code"></strong></div>
+    <button id="copy-address" class="button primary full-width" disabled>复制链接</button>
+  </dialog>
+  <dialog id="auth-dialog" class="modal" aria-labelledby="auth-title">
+    <form id="auth-form">
+      <div class="modal-header"><h2 id="auth-title">输入连接码</h2></div>
+      <label for="code-input" class="field-label">服务终端中的 6 位数字</label>
+      <input id="code-input" class="text-input code-input" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required>
+      <p class="form-error" id="auth-error" role="alert"></p>
+      <button class="button primary full-width" type="submit">连接</button>
+    </form>
+  </dialog>
+  <dialog id="folder-dialog" class="modal" aria-labelledby="folder-title">
+    <form id="folder-form">
+      <div class="modal-header"><h2 id="folder-title">新建文件夹</h2><button type="button" class="icon-button close-modal" aria-label="关闭"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div>
+      <input id="folder-name" class="text-input" aria-label="文件夹名称" maxlength="100" placeholder="文件夹名称" required>
+      <p class="form-error" id="folder-error" role="alert"></p>
+      <div class="modal-actions"><button type="button" class="button close-modal">取消</button><button class="button primary" type="submit">创建</button></div>
+    </form>
+  </dialog>
+  <dialog id="delete-dialog" class="modal" aria-labelledby="delete-title" aria-describedby="delete-filename delete-note">
+    <form id="delete-form">
+      <div class="modal-header"><h2 id="delete-title">删除文件？</h2><button type="button" class="icon-button close-modal" aria-label="关闭"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div>
+      <p id="delete-filename" class="delete-filename"></p>
+      <p id="delete-note" class="delete-note">删除后无法恢复。</p>
+      <p id="delete-error" class="form-error" role="alert"></p>
+      <div class="modal-actions"><button type="button" class="button close-modal" autofocus>取消</button><button class="button danger" type="submit">删除</button></div>
+    </form>
+  </dialog>
+</body>
+</html>

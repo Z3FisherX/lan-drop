@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f6f1">
+  <meta name="referrer" content="same-origin">
+  <title>现场扫码收件箱 · LAN Drop</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/inbox.css">
+  <script src="/inbox-host.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand"><img src="/favicon.svg" alt="" width="26" height="26">LAN Drop</div>
+      <p class="host-status" id="host-status" role="status">正在连接</p>
+    </header>
+
+    <main>
+      <h1>现场扫码收件箱</h1>
+      <p class="notice error" id="host-error" role="alert" hidden></p>
+
+      <div class="host-grid">
+        <section class="card" id="setup-card" aria-labelledby="setup-title">
+          <h2 id="setup-title" tabindex="-1">开始收件</h2>
+          <p class="hint setup-hint">选一个文件夹，用来保存收到的文件。</p>
+          <button class="button primary pick-button" id="pick-directory" type="button" hidden>选目录并开始</button>
+          <details class="options" id="manual-directory" hidden>
+            <summary id="manual-directory-toggle">手动填写路径</summary>
+            <form id="inbox-form">
+              <label for="destination">收件文件夹路径</label>
+              <div class="field-row">
+                <input class="field path-field" id="destination" name="destination" type="text" spellcheck="false" autocomplete="off" placeholder="如 D:\活动资料\收件" required disabled>
+                <button class="button" id="start-inbox" type="submit" disabled>开始收件</button>
+              </div>
+            </form>
+          </details>
+        </section>
+
+        <section class="card share-card" id="share-card" aria-labelledby="share-title" hidden>
+          <h2 id="share-title" tabindex="-1">请扫码上传</h2>
+          <p class="hint">访客需连接到同一局域网。</p>
+          <div class="qr-frame">
+            <button class="qr-button" type="button" id="show-qr" aria-label="放大二维码" title="放大二维码" disabled hidden>
+              <img id="share-qr" alt="" width="256" height="256">
+            </button>
+            <p id="qr-placeholder" class="hint" role="status">正在加载二维码…</p>
+          </div>
+          <div class="actions share-actions">
+            <button class="button" type="button" id="copy-link" hidden>复制链接</button>
+            <button class="button end-button" type="button" id="stop-inbox">结束收件</button>
+          </div>
+          <p class="hint" id="copy-feedback" role="status"></p>
+          <details class="options share-options" id="share-options">
+            <summary>连接选项</summary>
+            <div class="share-details" id="share-details" hidden>
+              <div id="network-option" hidden>
+                <label for="network">网络地址</label>
+                <select class="field" id="network"></select>
+              </div>
+              <label for="share-link">投递链接</label>
+              <input class="field path-field" id="share-link" type="text" readonly spellcheck="false">
+            </div>
+            <p class="hint">扫码后打不开？确认设备连到同一网络。访客 Wi‑Fi 可能禁止设备互访。</p>
+          </details>
+        </section>
+
+        <section class="card receipts-card" id="receipts-card" aria-labelledby="receipts-title" hidden>
+          <div class="card-heading">
+            <h2 id="receipts-title">已收文件</h2>
+            <p class="file-count" id="file-count" role="status"></p>
+          </div>
+          <p id="active-destination" class="saved-path" hidden></p>
+          <p class="empty-state" id="receipts-empty">等待第一份文件。</p>
+          <ul class="file-list" id="receipts" aria-label="收件记录" hidden></ul>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="qr-dialog" class="dialog projector" aria-labelledby="qr-title" aria-describedby="qr-instructions">
+    <h2 id="qr-title">扫码投递文件</h2>
+    <img id="projector-qr" alt="文件投递二维码" width="480" height="480">
+    <p id="qr-instructions">请先连接到与主办方电脑相同的网络。</p>
+    <form method="dialog"><button class="button" autofocus>关闭</button></form>
+  </dialog>
+
+  <dialog id="stop-dialog" class="dialog" aria-labelledby="stop-title" aria-describedby="stop-note">
+    <h2 id="stop-title">结束本次收件？</h2>
+    <p id="stop-note">当前二维码和链接会失效，正在传输的文件会中止。已收到的文件仍保存在电脑上。</p>
+    <div class="actions">
+      <form method="dialog"><button class="button" autofocus>继续收件</button></form>
+      <button class="button danger" type="button" id="confirm-stop">结束收件</button>
+    </div>
+  </dialog>
+</body>
+</html>

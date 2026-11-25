@@ -1,0 +1,15 @@
+{
+  "name": "lan-drop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A LAN inbox for collecting files in person with a QR code.",
+  "scripts": {
+    "start": "node server.js --inbox",
+    "share": "node server.js --public",
+    "test": "node test/server.test.js && node test/inbox.test.js",
+    "check:syntax": "node --check server.js && node --check lib/choose-directory.js && node --check public/app.js && node --check public/inbox-host.js && node --check public/inbox-guest.js"
+  },
+  "engines": { "node": ">=16.20.2" },
+  "packageManager": "yarn@1.22.22",
+  "dependencies": { "qrcode": "1.5.4" }
+}
